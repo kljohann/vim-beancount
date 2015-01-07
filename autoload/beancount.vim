@@ -37,6 +37,16 @@ function! beancount#align_commodity(line1, line2)
     endwhile
 endfunction
 
+function! s:count_expression(text, expression)
+  return len(split(a:text, a:expression, 1)) - 1
+endfunction
+
+function! s:sort_accounts_by_depth(name1, name2)
+  let l:depth1 = s:count_expression(a:name1, ':')
+  let l:depth2 = s:count_expression(a:name2, ':')
+  return depth1 == depth2 ? 0 : depth1 > depth2 ? 1 : -1
+endfunction
+
 " Complete account name.
 function! beancount#complete_account(findstart, base)
     if a:findstart
@@ -48,8 +58,8 @@ function! beancount#complete_account(findstart, base)
         endif
     endif
 
-    let l:pattern = '^\V\.\{10\}\s\+open\s\+\zs\S\*' .
-                \ substitute(a:base, ":", '\\S\\*:\\S\\*', "g")
+    let l:prefix = substitute(a:base, ":", '\\[^ \\t:]\\*:', "g") . '\[^ \t:]\*'
+    let l:pattern = '^\V\.\{10\}\s\+open\s\+\zs' . prefix
     let l:view = winsaveview()
     let l:fe = &foldenable
     set nofoldenable
@@ -58,9 +68,10 @@ function! beancount#complete_account(findstart, base)
     while 1
         let l:cline = search(pattern, "W")
         if l:cline == 0 | break | endif
-        call add(matches, expand("<cWORD>"))
+        call add(matches, matchstr(expand("<cWORD>"), '^\V' . prefix))
     endwhile
     let &foldenable = l:fe
     call winrestview(l:view)
+    let l:matches = reverse(sort(l:matches, 's:sort_accounts_by_depth'))
     return l:matches
 endfunction
