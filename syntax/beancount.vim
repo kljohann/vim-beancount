@@ -1,13 +1,13 @@
 " Vim syntax file
 " Language: beancount
 " Maintainer: Nathan Grigg
-" Latest Revision: 2014-10-07
 
-" if exists("b:current_syntax")
-"     finish
-" endif
+if exists("b:current_syntax")
+    finish
+endif
 
 syntax clear
+
 " Basics.
 syn region beanComment start="\s*;" end="$" keepend contains=beanMarker
 syn match beanMarker "\v(\{\{\{|\}\}\})\d?" contained
@@ -17,8 +17,8 @@ syn match beanAmount "\v[-+]?[[:digit:].,]+" nextgroup=beanCurrency contained
 syn match beanCurrency "\v\w+" contained
 " Account name: alphanumeric with at least one colon.
 syn match beanAccount "\v[[:alnum:]]+:[-[:alnum:]:]+" contained
-syn match beanTag "\v#[-[:alnum:]]+" contained
-syn match beanLink "\v\^\S+" contained
+syn match beanTag "\v#[A-Za-z0-9\-_/.]+" contained
+syn match beanLink "\v\^[A-Za-z0-9\-_/.]+" contained
 
 
 " Most directives start with a date.
@@ -49,19 +49,19 @@ syn region beanPushTag matchgroup=beanKeyword start="\v^(push|pop)tag" end="$"
 syn region beanPad matchgroup=beanKeyword start="pad" end="$" contained
             \ keepend contains=beanAccount,beanComment
 
-syn region beanTxn matchgroup=beanKeyword start="\v(txn)?\s+[*!]" skip="^\s"
+syn region beanTxn matchgroup=beanKeyword start="\vtxn\s+|(txn)?\s+[*!&#?%PSTCUR]" skip="^\s\|^\n\n\@!"
             \ end="^" keepend contained fold
             \ contains=beanString,beanPost,beanComment,beanTag,beanLink,beanMeta
 syn region beanPost start="^\v\C\s+[A-Z]@=" end="$"
             \ contains=beanAccount,beanAmount,beanComment,beanCost,beanPrice
-syn region beanMeta matchgroup=beanTag start="^\v\C\s+[-a-z]+:(\s|$)@=" end="$"
+syn region beanMeta matchgroup=beanTag start="^\v\C\s+[a-z][a-z0-9\-_]+:(\s|$)@=" end="$"
 
 syn region beanCost start="{" end="}" contains=beanAmount contained
 syn match beanPrice "\V@@\?" nextgroup=beanAmount contained
 
 highlight default link beanKeyword Keyword
 highlight default link beanOptionTitle Keyword
-highlight default link beanDate Keyword
+highlight default link beanDate Statement
 highlight default link beanString String
 highlight default link beanComment Comment
 highlight default link beanAccount Identifier
@@ -69,6 +69,8 @@ highlight default link beanAmount Number
 highlight default link beanCurrency Number
 highlight default link beanCost Number
 highlight default link beanPrice Number
-highlight default link beanTag Comment
-highlight default link beanLink Comment
+highlight default link beanTag Type
+highlight default link beanLink Statement
 highlight default link beanMeta Comment
+
+let b:current_syntax = "beancount"
